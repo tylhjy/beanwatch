@@ -1,12 +1,10 @@
 /**
- * @Author tianyang
- * @license: (C) Copyright 2013-2021, NSCC-TJ.AllRightsReserved.
- * @Description: //TODO $
+ * @Author Tian Yang
+ * @license: (C) Copyright 2013-2021, Tian Yang.AllRightsReserved.
+ * @Description: a kind of beanwatch client for watch log file on remote host in real time
  * @Date: 16:08 2021/6/30
- * @Software: ThrmsTest
- * @Version:
- * @Param $
- * @return $
+ * @Software: BeanWatch
+ * @Version: 1.0
  **/
 package main
 

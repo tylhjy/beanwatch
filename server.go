@@ -1,12 +1,10 @@
 /**
- * @Author tianyang
- * @license: (C) Copyright 2013-2021, NSCC-TJ.AllRightsReserved.
- * @Description: //TODO $
+ * @Author Tian Yang
+ * @license: (C) Copyright 2013-2021,Tian Yang.AllRightsReserved.
+ * @Description: //Beanwatch server for link agents and clients
  * @Date: 16:42 2021/6/30
- * @Software: ThrmsTest
- * @Version:
- * @Param $
- * @return $
+ * @Software: BeanWatch
+ * @Version: 1.0
  **/
 package main
 
@@ -125,7 +123,7 @@ func GetTailClient(message *TailMessage) (string, map[string]*websocket.Conn) {
 		ID:   "",
 	}
 	hash := wsi.Hash()
-	return hash, clients[hash]
+	return hash, wrfs[hash]
 }
 
 // Get Tail Client from Tail Message
@@ -140,8 +138,8 @@ func GetRrcClient(message *CmdMessage) (string, *websocket.Conn) {
 }
 
 // Response broadcast channel
-var responseBroadcast = make(chan TailMessage)
-var rrcBroadcast = make(chan CmdMessage)
+var tailBroadcast = make(chan TailMessage)
+var cmdBroadcast = make(chan CmdMessage)
 
 // Configure the upgrader
 var upgrader = websocket.Upgrader{
@@ -150,9 +148,9 @@ var upgrader = websocket.Upgrader{
 	},
 }
 
-// agents saved all agent web sockets clients save all client web sockets
+// agents saved all agent web sockets wrfs save all client web sockets
 var agents = make(map[string]*websocket.Conn)
-var clients = make(map[string](map[string]*websocket.Conn))
+var wrfs = make(map[string](map[string]*websocket.Conn))
 var rrcs = make(map[string]*websocket.Conn)
 
 // Get remote addr
@@ -204,7 +202,7 @@ func BeanAgent(w http.ResponseWriter, r *http.Request) {
 				Path:      message["path"].(string),
 				Type:      message["type"].(string),
 			}
-			responseBroadcast <- tailMessage
+			tailBroadcast <- tailMessage
 		} else if message["type"].(string) == RRCRES {
 			cmdMessage = CmdMessage{
 				Timestamp: int64(message["timestamp"].(float64)),
@@ -214,7 +212,7 @@ func BeanAgent(w http.ResponseWriter, r *http.Request) {
 				Host:      message["host"].(string),
 				ID:        message["id"].(string),
 			}
-			rrcBroadcast <- cmdMessage
+			cmdBroadcast <- cmdMessage
 		}
 	}
 }
@@ -242,12 +240,12 @@ func BeanTailClient(w http.ResponseWriter, r *http.Request) {
 		ID:   id,
 	}
 	clientHash := client.Hash()
-	if clients[clientHash] == nil {
+	if wrfs[clientHash] == nil {
 		fmt.Println("tail new file:", path, "on host:", host)
-		clients[clientHash] = make(map[string]*websocket.Conn)
+		wrfs[clientHash] = make(map[string]*websocket.Conn)
 	}
 	fmt.Println("tail file:", path, "on host:", host, "client:", r.RemoteAddr, "on line!")
-	clients[clientHash][id] = ws
+	wrfs[clientHash][id] = ws
 	agent := GetBeanAgent(host)
 	if agent == nil {
 		_ = ws.WriteJSON(map[string]string{
@@ -269,9 +267,9 @@ func BeanTailClient(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			log.Printf("request ws recieved : %s", err)
 			// The client is disconnected, and at this time, it is judged whether there is a request for host+path, and if not, a message is sent to the agent on the responding host to close the go routine
-			delete(clients[clientHash], id)
-			if len(clients[clientHash]) == 0 {
-				SendCloseConnToAgent(host, path)
+			delete(wrfs[clientHash], id)
+			if len(wrfs[clientHash]) == 0 {
+				SendCloseTailToAgent(host, path)
 			}
 			break
 		}
@@ -325,8 +323,8 @@ func BeanCmdClient(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// tell agent to close
-func SendCloseConnToAgent(host string, path string) {
+// tell agent to close tail go routine
+func SendCloseTailToAgent(host string, path string) {
 	a := GetBeanAgent(host)
 	err := a.WriteJSON(TailRequestMessage{
 		Type: CLOSEWS,
@@ -361,8 +359,8 @@ func main() {
 // Handle Tail Messages
 func HandleTailMessages() {
 	for {
-		// Grab the next message from the broadcast channel
-		message := <-responseBroadcast
+		// Grab the next message from the tail broadcast channel
+		message := <-tailBroadcast
 		_, cs := GetTailClient(&message)
 		for _, c := range cs {
 			err := c.WriteJSON(message)
@@ -377,8 +375,8 @@ func HandleTailMessages() {
 // Handle remote command messages
 func HandleRRCMessages() {
 	for {
-		// Grab the next message from the broadcast channel
-		result := <-rrcBroadcast
+		// Grab the next message from the cmdBroadcast channel
+		result := <-cmdBroadcast
 		hash, c := GetRrcClient(&result)
 		err := c.WriteJSON(map[string]interface{}{
 			"timestamp": result.Timestamp,
@@ -391,7 +389,6 @@ func HandleRRCMessages() {
 			log.Printf("error: %v", err)
 		}
 		// delete command client websocket
-		// _ = c.Close()
 		delete(rrcs, hash)
 	}
 }

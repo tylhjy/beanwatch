@@ -1,17 +1,14 @@
 /**
- * @Author tianyang
- * @license: (C) Copyright 2013-2021, NSCC-TJ.AllRightsReserved.
- * @Description: //TODO $
+ * @Author Tian Yang
+ * @license: (C) Copyright 2013-2021, Tian Yang.AllRightsReserved.
+ * @Description: //Beanwatch agent running on remote host in background
  * @Date: 16:08 2021/6/30
- * @Software: ThrmsTest
- * @Version:
- * @Param $
- * @return $
+ * @Software: BeanWatch
+ * @Version: 1.0
  **/
 package main
 
 import (
-	//"bytes"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -21,9 +18,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
-	//"os/exec"
 	"strings"
-	//"syscall"
 	"time"
 	execute "github.com/alexellis/go-execute/pkg/v1"
 )

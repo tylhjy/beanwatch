@@ -1,12 +1,10 @@
 /**
- * @Author tianyang
- * @license: (C) Copyright 2013-2021, NSCC-TJ.AllRightsReserved.
- * @Description: //TODO $
+ * @Author Tian Yang
+ * @license: (C) Copyright 2013-2021, Tian Yang.AllRightsReserved.
+ * @Description: a kind of beanwatch client for run system command on remote host
  * @Date: 11:12 2021/7/3
- * @Software: ThrmsTest
- * @Version:
- * @Param $
- * @return $
+ * @Software: BeanWatch
+ * @Version: 1.0
  **/
 package main
 
@@ -85,7 +83,7 @@ func main() {
 		log.Fatal(err)
 	}
 	defer ws.Close()
-	// send message
+	// send run command message
 	_ ,err = ws.Write([]byte(cmd))
 	if err != nil {
 		log.Fatal("send cmd to remote failed!")
@@ -143,6 +141,7 @@ func main() {
 			break
 		}
 	}()
+	// wait for remote response
 	response :=<- rrcRes
 	if response.Success {
 		if response.StdErr == "" {
