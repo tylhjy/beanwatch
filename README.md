@@ -3,9 +3,9 @@ Beanwatch is a small tool that can monitor log files on remote hosts in real tim
 
 ### Architecture
     [agent 192.168.1.2] [agent 192.168.1.3] [agent 192.168.1.4]
-        |                       |                   |
-                  |             |          |
-                          |     |      |
+            |                   |                   |
+                   |            |             |
+                          |     |     |
                                 |
                      (server 192.168.1.10:8001)
                                 |
