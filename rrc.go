@@ -66,7 +66,7 @@ func main() {
 	if err == nil {
 		TransitNode = conf.TransitHost
 		if len(os.Args) < 3 {
-			log.Fatal("Please input host and path that you want to tail, e.g. rail 192.168.2.1 D://456.txt")
+			log.Fatal("Please input host and path that you want to tail, e.g. rrc 192.168.2.1 cat D://test.txt")
 		}
 	} else {
 		fmt.Println("Please config conf.yaml!")
